@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+<html>
+if(isset($_POST['submit']))
+{
+					$mailid = $_POST["Emailid"];	
+					$uname = $_POST['yname'];					
+					// $to = "ezhilbio1987@gmail.com";
+					$to = "ezhilbio1987@gmail.com";
+					//define the subject of the email 
+					$subject =  $_POST['subject'] ." user mailid :". $mailid ."User name :".$uname ;
+					//create a boundary string. It must be unique 
+					//so we use the MD5 algorithm to generate a random hash 
+					$boundary = md5(date('r', time()));
+					 //Initial Headers 
+					 $headers = "MIME-Version: 1.0\r\n"; // <- the "\r\n" indicate a carriage return and newline, respectively					 
+					 $headers .= "Content-Type: multipart/mixed; boundary=" . $boundary . "\r\n"; // <- This is 
+					 // saying the there will be more than one (a "mix") of Content Types in this email.
+					 // The "boundary" value will indicate when each content type will start
+	
+																	  //First Content Type
+					 $message = "\r\n\r\n--" . $boundary . "\r\n"; // <- This indicates that I'm going to start
+					 // declaring headers specific to this section of the email. 
+					 // MAKE SURE there's only ONE(1) "\r\n" between the above boundry and the first header below (Content-Type)
+					 $message .= "Content-type: Text/HTML; charset=iso-8859-1$EOL\r\n"; // <- Here I'm saying this content should be plain text
+					 $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+					 
+					 // Body of the email for the headers I just declared 
+					 $message .= $_POST["str_content"];										 
+					 	// $from = $_SESSION['login_email'];
+					 //	$headers = 'From:' . $from ."\r\n" .
+					  // 'Reply-To: '. $from . "\r\n" .
+					 //  'X-Mailer: PHP/' . phpversion();
+					 $from = "scienpqn@scienceq.org";
+						$headers = "From:" . $from;
+
+mail($to, $subject, $_POST["str_content"], $headers); 
+					//$content = $_POST["str_content"];
+					 //Check to see if the email was sent successfully ($mail_sent = true).
+					 //If so, display "Thanks for your Query, you will hear from us soon" to the screen, else display "Mail Failed".
+					// echo $mail_sent ? "Mail sent." : "Mail failed."; 					
+				// $Create_user = "insert into mail_history(Content,Subject,Type,Mail_To) values('$content','Mail from Editor','Author Mail','$mailid')";
+				
+			//	mysql_query($Create_user);
+}
+?>
+
+<script type="text/javascript">
+$("a").removeClass('active');
+$("#contactus").addClass('active');
+function validateid()
+{
+	//return false;
+	var aa =document.getElementById('yname').value; 
+	  var a=document.getElementById('Emailid').value;
+	  var b = document.getElementById('subject').value;
+	  var c = document.getElementById('str_content').value;
+	  if($.trim(aa)=='')
+			{
+				alert("Please enter Name!");
+				document.getElementById('yname').focus();
+				return false;
+			}
+		if($.trim(a)=='')
+			{
+				alert("Please enter Emailid!");
+				document.getElementById('Emailid').focus();
+				return false;
+			}		
+			if(IsEmail($.trim(a))==false)
+				{
+				alert("Please enter a valid email address");
+				$('#Emailid').val("");
+				document.getElementById('Emailid').focus();
+				return false;
+				}	
+		if($.trim(b)=='')
+			{
+				alert("Please enter subject!");
+				document.getElementById('subject').focus();
+				return false;
+			}	
+			if($.trim(c)=='')
+			{
+				alert("Please enter content!");
+				document.getElementById('days').focus();
+				return false;
+			}					
+}
+function IsEmail(email) {
+  var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  return regex.test(email);
+}
+</script>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Forms - SQ Med Scribe</title>
+<meta name="description" content="SQ-MedScribe is a real-time, true, virtual medical scribe service provider dedicated to helping physicians increase the amount of time they may spend with patients."/>
+<meta name="keywords" content="Virtual Medical Scribes, Doctor Scribes, Medical Scribes, Virtual Scribes, ScienceQ,ScienceQ Med Scribe, Med Scribe, Virtual scribe"/>
+	<link rel="stylesheet" href="css/style.css" type="text/css">
+	<!--[if IE 7]>
+		<link rel="stylesheet" href="css/ie7.css" type="text/css">
+	<![endif]-->
+</head>
+<body>
+	<div id="header">
+		<div>
+			<div>
+				<span>We care for Doctors</span>
+				<a href="index.html" class="logo"><img src="images/logo.png" alt=""></a>
+				<span class="tagline">Helps you to focus more on PATIENTS</span>
+			</div>
+			<ul>
+				<li>
+					<a href="index.html">home</a>
+				</li>
+				
+				
+				<li>
+					<a href="services.html">services</a>
+				</li>
+				<li class="selected">
+					<a href="forms.html">forms</a>
+				</li>
+				<li>
+					<a href="contact.html">contact</a>
+				</li>
+				
+			</ul>
+		</div>
+	</div>
+	<div id="body">
+		<div class="content">
+			<div id="section">
+				<h2>forms</h2>
+				<b>Features</b>
+				<ul>
+					<li>
+						NO monthly or annual subscription fees
+					</li>
+					<li>
+						NO setup or activation fees
+					</li>
+					<li>
+						NO long-term commitment to make
+					</li>
+					<li>
+						NO more wasted time and money
+					</li>
+					<li>
+						$8.99 per hour - 8 hour minimum per day * of live virtual medical transcription services
+					</li>
+<li>
+						Special arrangements can be made on a case by case basis, please contact us to discuss your program, we are flexible to your needs.
+					</li>
+				</ul>
+				<div>
+					<b>Pricing for Our Medical Scribe EMR/EHR Virtual scribing</b>
+					<p>
+						We believe in simple billing. That's why we charge a flat rate for our medical scribe services. At the end of the billing cycle, we will send you an invoice for the services you've used. No hidden charges, no sneaky billing practices. Fair and simple.
+					</p>
+					<a href="#" class="download">download</a>
+				</div>
+
+<!--
+				<div>
+					<b>patient therapy form</b>
+					<p>
+						This website template has been designed by <a href="http://www.freewebsitetemplates.com/">Free Website Templates</a> for you, for free. You can replace all this text with your own text. You can remove any link to our website from this website template, you're free to use this website template without linking back to us. If you're having problems editing this website template, then don't hesitate to ask for help on the <a href="http://www.freewebsitetemplates.com/forums/">Forums</a>.
+					</p>
+					<a href="#" class="download">download</a>
+				</div>-->
+			</div>
+			<div id="sidebar">
+				<div class="search">
+					<h3>search</h3>
+					<form action="index.html">
+						<input type="text" name="search" id="search" value="Search here...">
+						<input type="hidden" name="submit" id="submitBtn" value="">
+					</form>
+				</div>
+				<div class="contact">
+					<h3>contact information</h3>
+					<ul class="first">
+						<li class="office">
+							<b>florida office</b><span>2955 Powder House Road Boynton Beach, FL 33436</span>
+						</li>
+						<li class="telephone">
+							561-574-0800
+						</li>
+						<li class="fax">
+							561-574-0811
+						</li>
+						<li class="email">
+							<a href="http://www.freewebsitetemplates.com/misc/contact">info@fl.cardiocenter.com</a>
+						</li>
+					</ul>
+					<ul>
+						<li class="office">
+							<b>vancouver office</b><span>471 melody Lane Richmond, VA 23225</span>
+						</li>
+						<li class="telephone">
+							804-417-2482
+						</li>
+						<li class="fax">
+							804-417-2483
+						</li>
+						<li class="email">
+							<a href="http://www.freewebsitetemplates.com/misc/contact">info@fl.cardiocenter.com</a>
+						</li>
+					</ul>
+				</div>
+				<div>
+					<h3>office hours:</h3>
+					<span>Monday - Friday <span>7:00 a.m. - 4:30 p.m.</span></span> <span>Saturdays &amp; Sundays <span>7:00 a.m. - 12:00 p.m.</span></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="footer">
+		<div>
+			<p>
+				Copyright &copy; <a href="index.html">SQ-MedScribe</a>
+			</p>
+			<ul>
+				<li>
+					<a href="index.html">home</a>
+				</li>
+				<li>
+					<a href="about.html">about</a>
+				</li>
+				<li>
+					<a href="doctors.html">our doctors</a>
+				</li>
+				<li>
+					<a href="services.html">services</a>
+				</li>
+				<li>
+					<a href="forms.html">forms</a>
+				</li>
+				<li>
+					<a href="contact.html">contact</a>
+				</li>
+				<li>
+					<a href="blog.html">blog</a>
+				</li>
+			</ul>
+			<div>
+				<span>stay connected:</span>
+				<a href="http://freewebsitetemplates.com/go/facebook/" id="facebook">facebook</a>
+				<a href="http://freewebsitetemplates.com/go/twitter/" id="twitter">twitter</a>
+				<a href="http://freewebsitetemplates.com/go/googleplus/" id="googleplus">googleplus</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
