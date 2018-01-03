@@ -1,257 +1,656 @@
-<!DOCTYPE HTML>
-<html>
-if(isset($_POST['submit']))
-{
-					$mailid = $_POST["Emailid"];	
-					$uname = $_POST['yname'];					
-					// $to = "ezhilbio1987@gmail.com";
-					$to = "ezhilbio1987@gmail.com";
-					//define the subject of the email 
-					$subject =  $_POST['subject'] ." user mailid :". $mailid ."User name :".$uname ;
-					//create a boundary string. It must be unique 
-					//so we use the MD5 algorithm to generate a random hash 
-					$boundary = md5(date('r', time()));
-					 //Initial Headers 
-					 $headers = "MIME-Version: 1.0\r\n"; // <- the "\r\n" indicate a carriage return and newline, respectively					 
-					 $headers .= "Content-Type: multipart/mixed; boundary=" . $boundary . "\r\n"; // <- This is 
-					 // saying the there will be more than one (a "mix") of Content Types in this email.
-					 // The "boundary" value will indicate when each content type will start
-	
-																	  //First Content Type
-					 $message = "\r\n\r\n--" . $boundary . "\r\n"; // <- This indicates that I'm going to start
-					 // declaring headers specific to this section of the email. 
-					 // MAKE SURE there's only ONE(1) "\r\n" between the above boundry and the first header below (Content-Type)
-					 $message .= "Content-type: Text/HTML; charset=iso-8859-1$EOL\r\n"; // <- Here I'm saying this content should be plain text
-					 $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-					 
-					 // Body of the email for the headers I just declared 
-					 $message .= $_POST["str_content"];										 
-					 	// $from = $_SESSION['login_email'];
-					 //	$headers = 'From:' . $from ."\r\n" .
-					  // 'Reply-To: '. $from . "\r\n" .
-					 //  'X-Mailer: PHP/' . phpversion();
-					 $from = "scienpqn@scienceq.org";
-						$headers = "From:" . $from;
+package controller;
 
-mail($to, $subject, $_POST["str_content"], $headers); 
-					//$content = $_POST["str_content"];
-					 //Check to see if the email was sent successfully ($mail_sent = true).
-					 //If so, display "Thanks for your Query, you will hear from us soon" to the screen, else display "Mail Failed".
-					// echo $mail_sent ? "Mail sent." : "Mail failed."; 					
-				// $Create_user = "insert into mail_history(Content,Subject,Type,Mail_To) values('$content','Mail from Editor','Author Mail','$mailid')";
-				
-			//	mysql_query($Create_user);
-}
-?>
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 
-<script type="text/javascript">
-$("a").removeClass('active');
-$("#contactus").addClass('active');
-function validateid()
-{
-	//return false;
-	var aa =document.getElementById('yname').value; 
-	  var a=document.getElementById('Emailid').value;
-	  var b = document.getElementById('subject').value;
-	  var c = document.getElementById('str_content').value;
-	  if($.trim(aa)=='')
-			{
-				alert("Please enter Name!");
-				document.getElementById('yname').focus();
-				return false;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.util.ResourceBundle;
+
+import application.MainApp;
+import item.FunctionData;
+import item.ItemBase;
+import item.TypeData;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import xml.UpdateMap;
+import xml.UpdateXML;
+
+public class InFunctionController implements Initializable {
+	public static String functionName;
+	public static String packageName;
+	public static ObservableList<ItemBase> observableInputItemList;
+	public static ObservableList<ItemBase> observableOutputItemList;
+	public static String inputOccurs;
+	public static String outputOccurs;
+	public static List<HashMap<String, TypeData>> typeList;
+	public static ObservableList<String> fieldTypeList = FXCollections.observableArrayList();
+	public static HashMap<String, String> typeSizeMap = new HashMap<String, String>();
+	public static HashMap<String,TypeData> completeTypeMap=new HashMap<String,TypeData>();
+	public static List<ItemBase> completeInputItems=new ArrayList<ItemBase>();
+	@FXML
+	private TextArea vText;
+
+	/*
+	 * public static List<HashMap<String, List<ItemBase>>> functionList; public
+	 * static List<HashMap<String, List<ItemBase>>> outputFunctionList;
+	 */
+	public static String type = null;
+	public static List<HashMap<String, FunctionData>> functionMapList;
+	@FXML
+	Label functionLabel;
+	@FXML
+	private TableView<HeaderList> topTable;
+	@FXML
+	private TableView<ItemBase> inputTable;
+	@FXML
+	private TableView<ItemBase> outputTable;
+	@FXML
+	private TableColumn<ItemBase, String> iname;
+	@FXML
+	private TableColumn<ItemBase, String> itype;
+	@FXML
+	private TableColumn<ItemBase, String> isize;
+	@FXML
+	private TableColumn<ItemBase, String> irequired;
+	@FXML
+	private TableColumn<ItemBase, String> imaxOccurs;
+	@FXML
+	private TableColumn<ItemBase, String> iprecision;
+	@FXML
+	private ComboBox<String> icb;
+	@FXML
+	private TableColumn<ItemBase, String> oname;
+	@FXML
+	private TableColumn<ItemBase, String> otype;
+	@FXML
+	private TableColumn<ItemBase, String> osize;
+	@FXML
+	private TableColumn<ItemBase, String> orequired;
+	@FXML
+	private TableColumn<ItemBase, String> omaxOccurs;
+	@FXML
+	private TableColumn<ItemBase, String> oprecision;
+
+	@FXML
+	private ComboBox<String> ocb;
+	@FXML
+	private Button addNewB;
+
+	@FXML
+	private Button deleteB;
+
+	@FXML
+	private Button moveUpB;
+
+	@FXML
+	private Button moveDownB;
+	@FXML
+	private Button addNewRB;
+
+	@FXML
+	private Button deleteRB;
+
+	@FXML
+	private Button moveUpRB;
+
+	@FXML
+	private Button moveDownRB;
+
+	public static List<HashMap<String, TypeData>> getTypeList() {
+		return typeList;
+	}
+
+	public static void setTypeList(List<HashMap<String, TypeData>> typeList) {
+		InFunctionController.typeList = typeList;
+	}
+
+	public static List<HashMap<String, FunctionData>> getFunctionMapList() {
+		return functionMapList;
+	}
+
+	public static void setFunctionMapList(List<HashMap<String, FunctionData>> functionMapList) {
+		InFunctionController.functionMapList = functionMapList;
+	}
+
+	public static String getFunctionName() {
+		return functionName;
+	}
+
+	public static void setFunctionName(String functionName) {
+		InFunctionController.functionName = functionName;
+	}
+
+	public static String getPackageName() {
+		return packageName;
+	}
+
+	public static void setPackageName(String packageName) {
+		InFunctionController.packageName = packageName;
+	}
+
+	public ObservableList<String> occursList = FXCollections.observableArrayList("0..1", "0..N", "1..1", "1..N");
+
+	EventHandler<ActionEvent> inputDownButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=inputTable.getSelectionModel().getSelectedItem();int index=inputTable.getSelectionModel().getSelectedIndex();
+	// System.out.println("index " + index);
+
+	if(index<inputTable.getItems().size()-1){inputTable.getItems().add(index+1,inputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size " + inputTable.getItems().size());
+	inputTable.getSelectionModel().clearAndSelect(index+1);inputDownButtonFunction(index,item);}
+	// System.out.println(item.getName());
+	event.consume();}};
+	EventHandler<ActionEvent> inputUpButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=inputTable.getSelectionModel().getSelectedItem();int index=inputTable.getSelectionModel().getSelectedIndex();
+	// System.out.println("index " + index);
+
+	if(index>0){inputTable.getItems().add(index-1,inputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size " + inputTable.getItems().size());
+	inputTable.getSelectionModel().clearAndSelect(index-1);inputUpButtonFunction(index,item);}
+	// System.out.println(item.getName());
+	event.consume();}};
+	EventHandler<ActionEvent> outputDownButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=outputTable.getSelectionModel().getSelectedItem();int index=outputTable.getSelectionModel().getSelectedIndex();
+	// System.out.println("index " + index);
+	if(index<outputTable.getItems().size()-1){outputTable.getItems().add(index+1,outputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size " + outputTable.getItems().size());
+	outputTable.getSelectionModel().clearAndSelect(index+1);outputDownButtonFunction(index,item);}
+	// System.out.println(item.getName());
+	event.consume();}};
+	EventHandler<ActionEvent> outputUpButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=outputTable.getSelectionModel().getSelectedItem();int index=outputTable.getSelectionModel().getSelectedIndex();
+	// System.out.println("index " + index);
+	if(index>0){outputTable.getItems().add(index-1,outputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size " + outputTable.getItems().size());
+	outputTable.getSelectionModel().clearAndSelect(index-1);outputUpButtonFunction(index,item);}
+	// System.out.println(item.getName());
+	event.consume();}};
+	EventHandler<ActionEvent> addButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){if(((Button)event.getSource()).getId().equals("addNewB"))type="Input";else type="Output";System.out.println("Am in button");
+	//////////////// SUB WINDOW////////////////////
+	Parent parent=null;try{parent=(Parent)FXMLLoader.load(getClass().getResource("/View/NewFieldFunction.fxml"));}catch(IOException e){
+	// TODO Auto-generated catch block
+	e.printStackTrace();}Stage stage=new Stage();
+	// stage.initStyle(StageStyle.TRANSPARENT);
+	stage.setTitle("New Field");stage.setScene(new Scene(parent));stage.setResizable(false);stage.initModality(Modality.WINDOW_MODAL);stage.initOwner(MainApp.getStage());stage.showAndWait();
+	//////////////// SUB WINDOW////////////////////
+	System.out.println("add Operation");int index;if(type.equals("Input"))index=inputTable.getSelectionModel().getSelectedIndex();else index=outputTable.getSelectionModel().getSelectedIndex();System.out.println("INDEX: dddd: : :"+index);if(NewFieldFunctionController.newEntry)addButtonFunction(index);NewFieldFunctionController.newEntry=false;event.consume();}};
+	EventHandler<ActionEvent> inputDeleteButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=inputTable.getSelectionModel().getSelectedItem();int index=inputTable.getSelectionModel().getSelectedIndex();inputTable.getItems().remove(item);deleteButtonFunction(index,item,"I");
+	// upButtonFunction(index,item);
+	// System.out.println("index "+index);
+	// if(index>0){
+	// inputTable.getItems().add(index-1, inputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size "+inputTable.getItems().size());
+	// System.out.println(item.getName());
+	event.consume();}};
+	EventHandler<ActionEvent> outputDeleteButtonHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){
+	// label.setText("Accepted");
+	// System.out.println("Am here");
+	ItemBase item=outputTable.getSelectionModel().getSelectedItem();int index=outputTable.getSelectionModel().getSelectedIndex();outputTable.getItems().remove(item);deleteButtonFunction(index,item,"O");
+	// upButtonFunction(index,item);
+	// System.out.println("index "+index);
+	// if(index>0){
+	// inputTable.getItems().add(index-1, inputTable.getItems().remove(index));
+	// select item at new position
+	// System.out.println("size "+inputTable.getItems().size());
+	// System.out.println(item.getName());
+	event.consume();}};
+
+	EventHandler<ActionEvent> occursHandler=new EventHandler<ActionEvent>(){@Override public void handle(ActionEvent event){String typeOccurs="";if(((ComboBox)event.getSource()).getId().equals("icb")){typeOccurs="Input";}else typeOccurs="Output";String value=((ComboBox)event.getSource()).getSelectionModel().getSelectedItem().toString();System.out.println("SELECTED : : : :"+value);UpdateMap.updateOccursFunction(packageName,functionName,value,typeOccurs);UpdateXML.updateOccursFunction(packageName,functionName,value,typeOccurs);}
+
+	};
+
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		System.out.println(occursList);
+		// icb=new ComboBox<>(occursList);
+
+		construct();
+		vText.setText(generateInputODSC());
+		vText.setEditable(false);
+		if (inputOccurs == null)
+			inputOccurs = "1..1";
+		if (outputOccurs == null)
+			outputOccurs = "1..1";
+		icb.getItems().addAll(occursList);
+		icb.getSelectionModel().select(inputOccurs);
+		ocb.getItems().addAll(occursList);
+		ocb.getSelectionModel().select(outputOccurs);
+		icb.setOnAction(occursHandler);
+		ocb.setOnAction(occursHandler);
+		addNewB.setOnAction(addButtonHandler);
+		addNewRB.setOnAction(addButtonHandler);
+		moveUpB.setOnAction(inputUpButtonHandler);
+		moveUpRB.setOnAction(outputUpButtonHandler);
+		moveDownB.setOnAction(inputDownButtonHandler);
+		moveDownRB.setOnAction(outputDownButtonHandler);
+		deleteB.setOnAction(inputDeleteButtonHandler);
+		deleteRB.setOnAction(outputDeleteButtonHandler);
+	}
+
+	protected void addButtonFunction(int index) {
+		HashMap<String, String> newFieldMap = NewFieldFunctionController.newFieldMap;
+		ItemBase itemBase = new ItemBase();
+		System.out.println("HERE");
+		if (newFieldMap.get("Name") != null && !newFieldMap.get("Name").isEmpty()) {
+			itemBase.setName(newFieldMap.get("Name"));
+			itemBase.setType(newFieldMap.get("Type"));
+			itemBase.setSize(newFieldMap.get("Size"));
+			itemBase.setRequired(newFieldMap.get("Required"));
+			itemBase.setMaxOccurs(newFieldMap.get("maxOccurs"));
+			itemBase.setPrecision(newFieldMap.get("Precision"));
+			itemBase.setAllAttributes(NewFieldFunctionController.allAttributes);
+			if (index < 0) {
+				if (type.equals("Input"))
+					observableInputItemList.add(itemBase);
+				else
+					observableOutputItemList.add(itemBase);
+			} else {
+				if (type.equals("Input"))
+					observableInputItemList.add(index + 1, itemBase);
+				else
+					observableOutputItemList.add(index + 1, itemBase);
 			}
-		if($.trim(a)=='')
-			{
-				alert("Please enter Emailid!");
-				document.getElementById('Emailid').focus();
-				return false;
-			}		
-			if(IsEmail($.trim(a))==false)
-				{
-				alert("Please enter a valid email address");
-				$('#Emailid').val("");
-				document.getElementById('Emailid').focus();
-				return false;
-				}	
-		if($.trim(b)=='')
-			{
-				alert("Please enter subject!");
-				document.getElementById('subject').focus();
-				return false;
-			}	
-			if($.trim(c)=='')
-			{
-				alert("Please enter content!");
-				document.getElementById('days').focus();
-				return false;
-			}					
-}
-function IsEmail(email) {
-  var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-  return regex.test(email);
-}
-</script>
 
-<head>
-	<meta charset="UTF-8">
-	<title>Forms - SQ Med Scribe</title>
-<meta name="description" content="SQ-MedScribe is a real-time, true, virtual medical scribe service provider dedicated to helping physicians increase the amount of time they may spend with patients."/>
-<meta name="keywords" content="Virtual Medical Scribes, Doctor Scribes, Medical Scribes, Virtual Scribes, ScienceQ,ScienceQ Med Scribe, Med Scribe, Virtual scribe"/>
-	<link rel="stylesheet" href="css/style.css" type="text/css">
-	<!--[if IE 7]>
-		<link rel="stylesheet" href="css/ie7.css" type="text/css">
-	<![endif]-->
-</head>
-<body>
-	<div id="header">
-		<div>
-			<div>
-				<span>We care for Doctors</span>
-				<a href="index.html" class="logo"><img src="images/logo.png" alt=""></a>
-				<span class="tagline">Helps you to focus more on PATIENTS</span>
-			</div>
-			<ul>
-				<li>
-					<a href="index.html">home</a>
-				</li>
-				
-				
-				<li>
-					<a href="services.html">services</a>
-				</li>
-				<li class="selected">
-					<a href="forms.html">forms</a>
-				</li>
-				<li>
-					<a href="contact.html">contact</a>
-				</li>
-				
-			</ul>
-		</div>
-	</div>
-	<div id="body">
-		<div class="content">
-			<div id="section">
-				<h2>forms</h2>
-				<b>Features</b>
-				<ul>
-					<li>
-						NO monthly or annual subscription fees
-					</li>
-					<li>
-						NO setup or activation fees
-					</li>
-					<li>
-						NO long-term commitment to make
-					</li>
-					<li>
-						NO more wasted time and money
-					</li>
-					<li>
-						$8.99 per hour - 8 hour minimum per day * of live virtual medical transcription services
-					</li>
-<li>
-						Special arrangements can be made on a case by case basis, please contact us to discuss your program, we are flexible to your needs.
-					</li>
-				</ul>
-				<div>
-					<b>Pricing for Our Medical Scribe EMR/EHR Virtual scribing</b>
-					<p>
-						We believe in simple billing. That's why we charge a flat rate for our medical scribe services. At the end of the billing cycle, we will send you an invoice for the services you've used. No hidden charges, no sneaky billing practices. Fair and simple.
-					</p>
-					<a href="#" class="download">download</a>
-				</div>
+			System.out.println("Calling");
+			UpdateMap.addButtonFunctionFunction(packageName, functionName, index,
+					NewFieldFunctionController.newFieldMap, itemBase, type);
+			UpdateXML.addButtonFunctionFunction(packageName, functionName, index, type);
+			// inputTable.refresh();
+		}
+	}
 
-<!--
-				<div>
-					<b>patient therapy form</b>
-					<p>
-						This website template has been designed by <a href="http://www.freewebsitetemplates.com/">Free Website Templates</a> for you, for free. You can replace all this text with your own text. You can remove any link to our website from this website template, you're free to use this website template without linking back to us. If you're having problems editing this website template, then don't hesitate to ask for help on the <a href="http://www.freewebsitetemplates.com/forums/">Forums</a>.
-					</p>
-					<a href="#" class="download">download</a>
-				</div>-->
-			</div>
-			<div id="sidebar">
-				<div class="search">
-					<h3>search</h3>
-					<form action="index.html">
-						<input type="text" name="search" id="search" value="Search here...">
-						<input type="hidden" name="submit" id="submitBtn" value="">
-					</form>
-				</div>
-				<div class="contact">
-					<h3>contact information</h3>
-					<ul class="first">
-						<li class="office">
-							<b>florida office</b><span>2955 Powder House Road Boynton Beach, FL 33436</span>
-						</li>
-						<li class="telephone">
-							561-574-0800
-						</li>
-						<li class="fax">
-							561-574-0811
-						</li>
-						<li class="email">
-							<a href="http://www.freewebsitetemplates.com/misc/contact">info@fl.cardiocenter.com</a>
-						</li>
-					</ul>
-					<ul>
-						<li class="office">
-							<b>vancouver office</b><span>471 melody Lane Richmond, VA 23225</span>
-						</li>
-						<li class="telephone">
-							804-417-2482
-						</li>
-						<li class="fax">
-							804-417-2483
-						</li>
-						<li class="email">
-							<a href="http://www.freewebsitetemplates.com/misc/contact">info@fl.cardiocenter.com</a>
-						</li>
-					</ul>
-				</div>
-				<div>
-					<h3>office hours:</h3>
-					<span>Monday - Friday <span>7:00 a.m. - 4:30 p.m.</span></span> <span>Saturdays &amp; Sundays <span>7:00 a.m. - 12:00 p.m.</span></span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div id="footer">
-		<div>
-			<p>
-				Copyright &copy; <a href="index.html">SQ-MedScribe</a>
-			</p>
-			<ul>
-				<li>
-					<a href="index.html">home</a>
-				</li>
-				<li>
-					<a href="about.html">about</a>
-				</li>
-				<li>
-					<a href="doctors.html">our doctors</a>
-				</li>
-				<li>
-					<a href="services.html">services</a>
-				</li>
-				<li>
-					<a href="forms.html">forms</a>
-				</li>
-				<li>
-					<a href="contact.html">contact</a>
-				</li>
-				<li>
-					<a href="blog.html">blog</a>
-				</li>
-			</ul>
-			<div>
-				<span>stay connected:</span>
-				<a href="http://freewebsitetemplates.com/go/facebook/" id="facebook">facebook</a>
-				<a href="http://freewebsitetemplates.com/go/twitter/" id="twitter">twitter</a>
-				<a href="http://freewebsitetemplates.com/go/googleplus/" id="googleplus">googleplus</a>
-			</div>
-		</div>
-	</div>
-</body>
-</html>
+	protected void deleteButtonFunction(int index, ItemBase item, String type) {
+		if (type.equals("I")) {
+			UpdateXML.moveButtonFunFunction(packageName, functionName, index, "Delete", "I");
+			UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "Delete", "I");
+		} else {
+			UpdateXML.moveButtonFunFunction(packageName, functionName, index, "Delete", "O");
+			// UpdateMap.moveButtonTypeFunction(packageName,functionName,index,item,"Delete");
+			UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "Delete", "O");
+		}
+	}
+
+	protected void inputUpButtonFunction(int index, ItemBase item) {
+		// System.out.println("Package Name : : "+packageName);
+		// System.out.println("Type Name : : : "+ functionName);
+		UpdateXML.moveButtonFunFunction(packageName, functionName, index, "U", "I");
+		UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "U", "I");
+
+	}
+
+	protected void inputDownButtonFunction(int index, ItemBase item) {
+		// System.out.println("Package Name : : "+packageName);
+		// System.out.println("Type Name : : : "+ functionName);
+		UpdateXML.moveButtonFunFunction(packageName, functionName, index, "D", "I");
+		// UpdateMap.moveButtonFunFunction(packageName,functionName,index,item,"D");
+		UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "D", "I");
+
+	}
+
+	protected void outputUpButtonFunction(int index, ItemBase item) {
+		// System.out.println("Package Name : : "+packageName);
+		// System.out.println("Type Name : : : "+ functionName);
+		UpdateXML.moveButtonFunFunction(packageName, functionName, index, "U", "O");
+		// UpdateMap.moveButtonFunFunction(packageName,functionName,index,item,"D");
+		UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "U", "D");
+
+	}
+
+	protected void outputDownButtonFunction(int index, ItemBase item) {
+		// System.out.println("Package Name : : "+packageName);
+		// System.out.println("Type Name : : : "+ functionName);
+		UpdateXML.moveButtonFunFunction(packageName, functionName, index, "D", "O");
+		// UpdateMap.moveButtonFunFunction(packageName,functionName,index,item,"D");
+		UpdateMap.moveButtonFunFunction(packageName, functionName, index, item, "D", "D");
+
+	}
+
+	public void construct() {
+		functionLabel.setText(functionName);
+		iname.setCellValueFactory(new PropertyValueFactory<>("name"));
+		itype.setCellValueFactory(new PropertyValueFactory<>("type"));
+		isize.setCellValueFactory(new PropertyValueFactory<>("size"));
+		irequired.setCellValueFactory(new PropertyValueFactory<>("required"));
+		imaxOccurs.setCellValueFactory(new PropertyValueFactory<>("maxOccurs"));
+		// iprecision.setCellValueFactory(new
+		// PropertyValueFactory<>("precision"));
+		iname.setPrefWidth(200.0);
+		itype.setPrefWidth(100.0);
+		oname.setCellValueFactory(new PropertyValueFactory<>("name"));
+		otype.setCellValueFactory(new PropertyValueFactory<>("type"));
+		osize.setCellValueFactory(new PropertyValueFactory<>("size"));
+		orequired.setCellValueFactory(new PropertyValueFactory<>("required"));
+		omaxOccurs.setCellValueFactory(new PropertyValueFactory<>("maxOccurs"));
+		oname.setPrefWidth(200.0);
+		otype.setPrefWidth(100.0);
+		iname.setSortable(false);
+		itype.setSortable(false);
+		isize.setSortable(false);
+		irequired.setSortable(false);
+		imaxOccurs.setSortable(false);
+		oname.setSortable(false);
+		otype.setSortable(false);
+		osize.setSortable(false);
+		orequired.setSortable(false);
+		omaxOccurs.setSortable(false);
+		// System.out.println("Calling Input");
+		// System.out.println(functionMapList);
+
+		ObservableList<String> cbValues = FXCollections.observableArrayList("1", "2", "3");
+		oname.setCellFactory(ComboBoxTableCell.forTableColumn("batchID", "Family", "Work Contacts"));
+		observableInputItemList = getInputFunctionList(functionMapList);
+		inputTable.setItems(observableInputItemList);
+		inputTable.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
+					Node node = ((Node) event.getTarget()).getParent();
+					TableRow row = null;
+					if (node instanceof TableRow) {
+						row = (TableRow) node;
+					} else {
+						// clicking on text part
+						row = (TableRow) node.getParent();
+					}
+					// System.out.println(((ItemBase)row.getItem()).getName());
+					editField(((ItemBase) row.getItem()));
+				}
+			}
+		});
+		// inputTable.setItems(getInFunctionList(functionList));
+		// System.out.println("Calling Output");
+		// System.out.println(outputFunctionList);
+		observableOutputItemList = getOutputFunctionList(functionMapList);
+		outputTable.setItems(observableOutputItemList);
+		outputTable.setOnMousePressed(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
+					Node node = ((Node) event.getTarget()).getParent();
+					TableRow row = null;
+					if (node instanceof TableRow) {
+						row = (TableRow) node;
+					} else {
+						// clicking on text part
+						row = (TableRow) node.getParent();
+					}
+					// System.out.println(((ItemBase)row.getItem()).getName());
+					editField(((ItemBase) row.getItem()));
+				}
+			}
+		});
+		// System.out.println("functionMap: : :"+functionMap);
+	}
+
+	protected void editField(ItemBase itemBase) {
+		System.out.println(packageName);
+		System.out.println(functionName);
+		System.out.println(itemBase.getName());
+		System.out.println(itemBase.getAllAttributes());
+		EditFieldController.newFieldMap = itemBase.getAllAttributes();
+		// System.out.println(itemBase.);
+
+		Parent parent = null;
+		try {
+			parent = (Parent) FXMLLoader.load(getClass().getResource("/View/EditFieldType.fxml"));
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Stage stage = new Stage();
+		// stage.initStyle(StageStyle.TRANSPARENT);
+		stage.setTitle("Edit Field");
+		stage.setScene(new Scene(parent));
+
+		stage.initModality(Modality.WINDOW_MODAL);
+		stage.initOwner(MainApp.getStage());
+		stage.setResizable(false);
+		stage.showAndWait();
+		System.out.println("edit Operation");
+		int index = inputTable.getSelectionModel().getSelectedIndex();
+		System.out.println("INDEX: : : :" + index);
+		if (EditFieldController.newEntry) {
+			editButtonFunction(index);
+
+			// UpdateMap.updateTypeField(packageName,typeName,index,EditFieldController.newFieldMap);
+		}
+		EditFieldController.newEntry = false;
+	}
+
+	protected void editButtonFunction(int index) {
+		System.out.println("Am insdie func");
+		HashMap<String, String> newFieldMap = EditFieldController.newFieldMap;
+		ItemBase itemBase = new ItemBase();
+		if (newFieldMap.get("Name") != null && !newFieldMap.get("Name").isEmpty()) {
+			System.out.println("Am creating");
+			itemBase.setName(newFieldMap.get("Name"));
+			itemBase.setType(newFieldMap.get("Type"));
+			itemBase.setSize(newFieldMap.get("Size"));
+			itemBase.setRequired(newFieldMap.get("Required"));
+			itemBase.setMaxOccurs(newFieldMap.get("maxOccurs"));
+			itemBase.setPrecision(newFieldMap.get("Precision"));
+			itemBase.setAllAttributes(NewFieldFunctionController.allAttributes);
+			observableInputItemList.remove(index);
+			observableInputItemList.add(index, itemBase);
+			int size = UpdateMap.addButtonTypeFunction(packageName, functionName, index,
+					NewFieldFunctionController.newFieldMap, itemBase, true);
+
+		}
+	}
+	/*
+	 * public ObservableList<ItemBase> getInFunctionList(List<HashMap<String,
+	 * List<ItemBase>>> functionList){
+	 * System.out.println("function Name : : :"+functionName);
+	 * ObservableList<ItemBase> itemList=FXCollections.observableArrayList();
+	 * if(functionList!=null) { for(HashMap<String, List<ItemBase>> hash :
+	 * functionList) {
+	 * 
+	 * Iterator i = null; boolean con=true; if (hash != null) { i =
+	 * hash.entrySet().iterator(); while (i.hasNext() && i != null) { Entry
+	 * entry = (Entry) i.next();
+	 * if(entry.getKey().toString().equals(functionName)) { for(ItemBase item
+	 * :(List<ItemBase>) entry.getValue()) { itemList.add(item); }
+	 * 
+	 * con=false; break; } } if(!con) break; } } //HashMap<String,Object>
+	 * hashMap=list.get System.out.println(itemList.size()); return itemList; }
+	 * else return null; }
+	 */
+
+	public ObservableList<ItemBase> getInputFunctionList(List<HashMap<String, FunctionData>> functionMapList) {
+		System.out.println("function Name : : :" + functionName);
+		ObservableList<ItemBase> itemList = FXCollections.observableArrayList();
+		if (functionMapList != null) {
+			for (HashMap<String, FunctionData> functionMap : functionMapList) {
+
+				Iterator i = null;
+				boolean con = true;
+				if (functionMap != null) {
+					i = functionMap.entrySet().iterator();
+					while (i.hasNext() && i != null) {
+						Entry entry = (Entry) i.next();
+						if (entry.getKey().toString().equals(functionName)) {
+							inputOccurs = ((FunctionData) entry.getValue()).getInputOccurs();
+							System.out.println("KEY : :: " + entry.getKey());
+							System.out.println(inputOccurs);
+							if (((FunctionData) entry.getValue()).getInputItemList() != null)
+								for (ItemBase item : ((FunctionData) entry.getValue()).getInputItemList()) {
+									itemList.add(item);
+								}
+
+							con = false;
+							break;
+						}
+					}
+					if (!con)
+						break;
+				}
+			}
+			// HashMap<String,Object> hashMap=list.get
+			System.out.println(itemList.size());
+			return itemList;
+		} else
+			return null;
+	}
+
+	public ObservableList<ItemBase> getOutputFunctionList(List<HashMap<String, FunctionData>> functionMapList) {
+		fieldTypeList.clear();
+		typeSizeMap.clear();
+		if (typeList != null)
+			for (HashMap<String, TypeData> typeMap : typeList) {
+
+				Iterator i = null;
+				boolean con = true;
+				if (typeMap != null) {
+					i = typeMap.entrySet().iterator();
+					while (i.hasNext() && i != null) {
+						Entry entry = (Entry) i.next();
+						if (entry != null)
+							fieldTypeList.add(entry.getKey().toString());
+						System.out.println("AM KEY:::"+entry.getKey().toString());
+						
+						typeSizeMap.put(entry.getKey().toString(), ((TypeData) entry.getValue()).getSize() + "");
+						completeTypeMap.put(entry.getKey().toString(), ((TypeData)entry.getValue()));
+						System.out.println("VAL: ::"+((TypeData)entry.getValue()).size);
+					}
+				}
+
+			}
+		System.out.println("function Name : : :" + functionName);
+		ObservableList<ItemBase> itemList = FXCollections.observableArrayList();
+		if (functionMapList != null) {
+			for (HashMap<String, FunctionData> functionMap : functionMapList) {
+
+				Iterator i = null;
+				boolean con = true;
+				if (functionMap != null) {
+					i = functionMap.entrySet().iterator();
+					while (i.hasNext() && i != null) {
+						Entry entry = (Entry) i.next();
+						if (entry.getKey().toString().equals(functionName)) {
+							outputOccurs = ((FunctionData) entry.getValue()).getOutputOccurs();
+							System.out.println("KEY : :: " + entry.getKey());
+							System.out.println(outputOccurs);
+							if (((FunctionData) entry.getValue()).getOutputItemList() != null)
+								for (ItemBase item : ((FunctionData) entry.getValue()).getOutputItemList()) {
+									itemList.add(item);
+								}
+
+							con = false;
+							break;
+						}
+					}
+					if (!con)
+						break;
+				}
+			}
+			// HashMap<String,Object> hashMap=list.get
+			System.out.println(itemList.size());
+			return itemList;
+		} else
+			return null;
+	}
+
+	public static String generateInputODSC() { 
+		System.out.println("CALLED");
+		StringBuffer buf=new StringBuffer(); 
+		System.out.println("PACKAGE NAME : :"+packageName); 
+		System.out.println("FUnction NAme : :"+functionName); 
+		String importStatemnt="package com.pershing.pdoservices."+packageName+".inparm;\nimport com.pershing.odsc.*;\nprivate final static OdscMetaData[] parameterInfo = new OdscMetaData[] {\n"; 
+		buf.append(importStatemnt); 
+		int j=0;
+		for(int i=0;i<observableInputItemList.size();i++)
+		{ 
+			ItemBase item=observableInputItemList.get(i); 
+			String type; 
+			
+		 if(fieldTypeList.contains(item.getType()))
+			{	
+				type="x";
+				System.out.println(item.getType());
+				System.out.println(completeTypeMap);
+				TypeData typeData=completeTypeMap.get(item.getType());
+				System.out.println(completeTypeMap.get(item.getType()));
+				System.out.println(typeData.size);
+				buf=retrieveTypeFields(j, typeData, buf);
+		//	buf.append(retrieveTypeFields(j,typeData,buf));
+			j=j+typeData.getSize();
+			}else{
+				
+			
+			if(item.getType().equals("String"))
+				type="s"; 
+			else if(item.getType().equals("Integer"))
+				type="i";
+			else type="undefined";
+			completeInputItems.add(item);
+			buf.append("new OdscMetaData("+item.getName()+","+j+","+(j+Integer.parseInt(item.getSize()))+","+type+"),\n"); 
+			j=j+Integer.parseInt((item.getSize()));
+			}
+		}
+		buf.append("};\nprivate static final int\n");
+		for(int i=0;i<completeInputItems.size();i++){
+			buf.append("$"+completeInputItems.get(i).getName().toUpperCase()+"="+i+",\n");
+		}
+		buf.append("$LENGTH = 0;\n");
+		return buf.toString();
+	
+	}
+
+	public static StringBuffer retrieveTypeFields(int j,TypeData typeData, StringBuffer buf){
+		//System.out.println(typeMap);
+		
+		//System.out.println(typeData.itemList);
+		for(ItemBase item:typeData.itemList){
+			completeInputItems.add(item);
+			buf.append("new OdscMetaData("+item.getName()+","+j+","+(j+Integer.parseInt(item.getSize()))+","+"x"+"),\n"); 
+		}
+		return buf;
+	}
+}
